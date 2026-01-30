@@ -650,7 +650,9 @@ class AuthUI {
       
       /* BOTÕES */
       .auth-btn {
-        padding: 12px 24px;
+        padding: 10px 24px;
+        margin: 10px 0;
+        width: -webkit-fill-available;
         border-radius: 6px;
         font-size: 15px;
         font-weight: 500;
@@ -661,6 +663,7 @@ class AuthUI {
       }
       
       .auth-btn-primary {
+        
         background: #3b82f6;
         color: white;
       }
