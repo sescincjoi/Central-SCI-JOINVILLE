@@ -187,7 +187,42 @@
             from { opacity: 0; transform: translateY(0); }
             to { opacity: 1; transform: translateY(0); }
         }
-           @keyframes axeChop {
+
+        /* AUTH LOCK OVERLAY */
+        .auth-locked {
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .auth-lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: inherit;
+        }
+        
+        .auth-lock-message {
+            text-align: center;
+            color: #86868b;
+        }
+        
+        .auth-lock-message i {
+            color: #d1d1d6;
+        }
+        
+        .auth-hidden {
+            display: none !important;
+        }
+        
+        @keyframes axeChop {
             0%, 100% { 
                 transform: rotate(0deg);
             }
