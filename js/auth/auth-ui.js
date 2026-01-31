@@ -24,8 +24,11 @@ class AuthUI {
     // Escutar mudanças de autenticação
     authCore.addAuthListener((event, user) => {
       if (event === 'login') {
+        // Fechar modal
         this.closeModal();
-        this.showSuccess(`Bem-vindo, ${user.displayName}!`);
+        
+        // Mostrar notificação de boas-vindas
+        this.showNotification(`Bem-vindo(a), ${user.displayName}!`, 'success');
       }
     });
   }
@@ -353,7 +356,7 @@ class AuthUI {
   /**
    * HANDLE CADASTRO
    */
-  async handleCadastro(e) {
+ async handleCadastro(e) {
     const btn = document.getElementById('cadastro-btn');
     const matricula = document.getElementById('cadastro-matricula').value;
     const nome = document.getElementById('cadastro-nome').value;
@@ -365,9 +368,15 @@ class AuthUI {
       this.setLoading(btn, true);
       this.hideMessage();
       
-      await authCore.cadastrar(matricula, senha, confirmar, email, nome);
+      const result = await authCore.cadastrar(matricula, senha, confirmar, email, nome);
       
-      // Sucesso - o listener já vai fechar o modal
+      // Mostrar mensagem de sucesso
+      this.showSuccess(result.message);
+      
+      // Aguardar 1 segundo para usuário ver a mensagem
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Modal vai fechar automaticamente quando o authCore.onAuthStateChanged detectar o login
       
     } catch (error) {
       this.showError(error.message);
@@ -741,6 +750,43 @@ class AuthUI {
     
     document.head.appendChild(style);
   }
+
+  /**
+   * MOSTRAR NOTIFICAÇÃO TOAST
+   */
+  showNotification(message, type = 'success') {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = `auth-notification auth-notification-${type}`;
+    notification.innerHTML = `
+      <div class="auth-notification-content">
+        <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    // Adicionar ao body
+    document.body.appendChild(notification);
+    
+    // Recriar ícones
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+    
+    // Animar entrada
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Remover após 4 segundos
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 4000);
+  }
+  
 }
 
 // Criar instância global
