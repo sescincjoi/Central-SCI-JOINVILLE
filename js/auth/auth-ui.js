@@ -17,6 +17,7 @@ class AuthUI {
     this.modal = null;
     this.currentView = 'login'; // 'login', 'cadastro', 'recuperar'
     this.isOpen = false;
+    this.isCadastreFlow = false;
     
     // Criar modal ao inicializar
     this.createModal();
@@ -24,11 +25,14 @@ class AuthUI {
     // Escutar mudanças de autenticação
     authCore.addAuthListener((event, user) => {
       if (event === 'login') {
-        // Fechar modal
         this.closeModal();
-        
-        // Mostrar notificação de boas-vindas
-        this.showNotification(`Bem-vindo(a), ${user.displayName}!`, 'success');
+    
+        if (this.isCadastreFlow) {
+          this.showNotification(`Cadastro realizado com sucesso! Bem-vindo(a), ${user.displayName}!`, 'success');
+          this.isCadastreFlow = false;
+        } else {
+          this.showNotification(`Bem-vindo(a), ${user.displayName}!`, 'success');
+        }
       }
     });
   }
@@ -367,6 +371,7 @@ class AuthUI {
     try {
       this.setLoading(btn, true);
       this.hideMessage();
+      this.isCadastreFlow = true;  // marca que é fluxo de cadastro
       
       const result = await authCore.cadastrar(matricula, senha, confirmar, email, nome);
       
@@ -379,6 +384,7 @@ class AuthUI {
       // Modal vai fechar automaticamente quando o authCore.onAuthStateChanged detectar o login
       
     } catch (error) {
+      this.isCadastreFlow = false;
       this.showError(error.message);
     } finally {
       this.setLoading(btn, false);
