@@ -40,6 +40,7 @@ class AuthCore {
     this.userRole = null;
     this.userMatricula = null;
     this.listeners = [];
+    this.isRegistering = false;
     
     // Inicializar listener de mudança de autenticação
     this.initAuthStateListener();
@@ -51,6 +52,7 @@ class AuthCore {
    */
   initAuthStateListener() {
     onAuthStateChanged(auth, async (firebaseUser) => {
+      if (this.isRegistering) return;
       if (firebaseUser) {
         // Usuário logado
         console.log('🔐 Usuário autenticado:', firebaseUser.uid);
@@ -312,6 +314,7 @@ class AuthCore {
       const emailVirtual = `${matriculaUpper}${CONFIG.emailDomain}`;
       
       // 8. Criar usuário no Firebase Auth
+      this.isRegistering = true;
       const userCredential = await createUserWithEmailAndPassword(auth, emailVirtual, senha);
       const user = userCredential.user;
       
@@ -337,8 +340,16 @@ class AuthCore {
         usadaEm: serverTimestamp(),
         usadaPor: user.uid
       });
-      
+
+      this.isRegistering = false;
       console.log('✅ Cadastro realizado com sucesso:', matriculaUpper);
+
+      // Dispara manualmente agora que tudo está gravado
+      this.notifyListeners('login', {
+        uid: user.uid,
+        matricula: matriculaUpper,
+        displayName: nomeCompleto
+      });
       
       // NÃO precisa fazer login manual - Firebase já autenticou automaticamente!
       // O onAuthStateChanged vai detectar e carregar os dados
