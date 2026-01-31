@@ -305,9 +305,13 @@ class AuthCore {
       
       console.log('✅ Cadastro realizado com sucesso:', matriculaUpper);
       
+      // NÃO precisa fazer login manual - Firebase já autenticou automaticamente!
+      // O onAuthStateChanged vai detectar e carregar os dados
+      
       return { 
         success: true, 
-        message: 'Cadastro realizado com sucesso!',
+        message: `Bem-vindo(a), ${nomeCompleto}!`,
+        autoLogin: true,
         user: {
           uid: user.uid,
           matricula: matriculaUpper,
