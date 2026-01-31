@@ -105,9 +105,44 @@ class AuthCore {
         console.log('✅ Dados do usuário carregados:', this.currentUser.matricula);
         
       } else {
-        console.error('❌ Documento do usuário não encontrado no Firestore');
-        // Usuário existe no Auth mas não no Firestore (situação anômala)
-        await this.logout();
+        // Aguarda até 3 segundos para o cadastro terminar de gravar
+        let attempts = 0;
+        let userData = null;
+      
+        while (attempts < 6 && !userData) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const retryDoc = await getDoc(doc(db, 'usuarios', firebaseUser.uid));
+          if (retryDoc.exists()) {
+            userData = retryDoc.data();
+          }
+          attempts++;
+        }
+      
+        if (userData) {
+          // Documento apareceu, carrega normalmente
+          this.currentUser = {
+            uid: firebaseUser.uid,
+            email: userData.email,
+            displayName: userData.displayName,
+            matricula: userData.matricula,
+            role: userData.role,
+            ativo: userData.ativo,
+            cadastradoEm: userData.cadastradoEm,
+            ultimoAcesso: userData.ultimoAcesso
+          };
+      
+          this.userRole = userData.role;
+          this.userMatricula = userData.matricula;
+      
+          await updateDoc(doc(db, 'usuarios', firebaseUser.uid), {
+            ultimoAcesso: serverTimestamp()
+          });
+      
+          console.log('✅ Dados do usuário carregados (retry):', this.currentUser.matricula);
+        } else {
+          console.error('❌ Documento do usuário não encontrado após retries');
+          await this.logout();
+        }
       }
       
     } catch (error) {
