@@ -341,15 +341,14 @@ class AuthCore {
         usadaPor: user.uid
       });
 
-      this.isRegistering = false;
+      this.isRegistering = false;  // libera o listener
       console.log('✅ Cadastro realizado com sucesso:', matriculaUpper);
-
+      
+      // Carrega dados completos do usuário no this.currentUser
+      await this.loadUserData(user);
+      
       // Dispara manualmente agora que tudo está gravado
-      this.notifyListeners('login', {
-        uid: user.uid,
-        matricula: matriculaUpper,
-        displayName: nomeCompleto
-      });
+      this.notifyListeners('login', this.currentUser);
       
       // NÃO precisa fazer login manual - Firebase já autenticou automaticamente!
       // O onAuthStateChanged vai detectar e carregar os dados
