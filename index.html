@@ -694,6 +694,30 @@
                 width: 16px;
                 height: 16px;
             }
+        /* RESPONSIVO MOBILE - Apenas ícone */
+        @media (max-width: 640px) {
+            .auth-button {
+                padding: 0;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                justify-content: center;
+                background: transparent;
+            }
+            
+            .auth-button.user {
+                background: transparent;
+            }
+            
+            .auth-button span {
+                display: none;
+            }
+            
+            .auth-button i {
+                width: 20px;
+                height: 20px;
+            }
+        }
             
             .auth-user-menu {
                 position: absolute;
@@ -827,13 +851,13 @@
                     </div>
                     
                     <!-- Botão Sino -->
-                    <button id="btnAvisos" class="relative" onclick="toggleAvisosModal()">
+                    <button id="btnAvisos" class="relative p-2" onclick="toggleAvisosModal()">
                         <i data-lucide="bell" class="w-5 h-5 text-gray-700 hover:text-blue-600 transition-colors"></i>
                         <span id="badgeAvisos" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">0</span>
                     </button>
                     
                     <!-- Relógio -->
-                    <div id="currentTime" class="text-sm font-semibold text-gray-900"></div>
+                    <div id="currentTime" class="text-sm font-semibold text-gray-900 hidden sm:block"></div>
                 </div>
             </div>
         </div>
