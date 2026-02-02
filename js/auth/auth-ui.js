@@ -125,6 +125,19 @@ class AuthUI {
               </div>
               
               <div class="auth-form-group">
+                <label for="cadastro-nome-ba">Nome de BA *</label>
+                <input 
+                  type="text" 
+                  id="cadastro-nome-ba" 
+                  name="nomeBA"
+                  placeholder="Como você quer ser chamado"
+                  autocomplete="off"
+                  required
+                />
+                <small class="auth-help-text">Nome que aparecerá no sistema</small>
+              </div>
+              
+              <div class="auth-form-group">
                 <label for="cadastro-email">Email para Recuperação *</label>
                 <input 
                   type="email" 
