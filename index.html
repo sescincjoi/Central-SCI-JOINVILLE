@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Central SCI JOI</title>
 
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/pwa/manifest.json">
     <meta name="theme-color" content="#fbfbfb">
     
     <!-- iOS suporte -->
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -884,6 +884,8 @@
         
         console.log('✅ Sistema de autenticação carregado');
     </script>
+    <!-- PWA Service Worker -->
+    <script src="/pwa/app.js"></script>
     
 </head>
 <body>
@@ -1656,14 +1658,7 @@
         window.addEventListener('load', init);
     </script>
 
-    <script>
-      // Registrar o service worker
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-          .then(() => console.log('✅ Service Worker registrado'))
-          .catch(err => console.log('❌ Erro no SW', err));
-      }
-    
+    <script>    
       let deferredPrompt;
     
       // Android: captura o evento de instalação
