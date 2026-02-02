@@ -377,6 +377,7 @@ class AuthUI {
     const btn = document.getElementById('cadastro-btn');
     const matricula = document.getElementById('cadastro-matricula').value;
     const nome = document.getElementById('cadastro-nome').value;
+    const nomeBA = document.getElementById('cadastro-nome-ba').value;
     const email = document.getElementById('cadastro-email').value;
     const senha = document.getElementById('cadastro-senha').value;
     const confirmar = document.getElementById('cadastro-confirmar').value;
@@ -386,7 +387,7 @@ class AuthUI {
       this.hideMessage();
       this.isCadastreFlow = true;  // marca que é fluxo de cadastro
       
-      const result = await authCore.cadastrar(matricula, senha, confirmar, email, nome);
+      const result = await authCore.cadastrar(matricula, senha, confirmar, email, nome, nomeBA);
       
       // Mostrar mensagem de sucesso
       this.showSuccess(result.message);
