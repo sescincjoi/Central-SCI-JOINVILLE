@@ -264,7 +264,7 @@ class AuthCore {
   /**
    * CADASTRAR NOVO USUÁRIO
    */
-  async cadastrar(matricula, senha, confirmarSenha, email, nomeCompleto) {
+  async cadastrar(matricula, senha, confirmarSenha, email, nomeCompleto, nomeBA) {
     try {
       // 1. Validar matrícula
       const matriculaValidation = this.validateMatricula(matricula);
@@ -291,6 +291,10 @@ class AuthCore {
       // 4. Validar nome
       if (!nomeCompleto || nomeCompleto.trim().length < 3) {
         throw new Error('Nome completo deve ter pelo menos 3 caracteres');
+      }
+      
+      if (!nomeBA || nomeBA.trim().length < 2) {
+        throw new Error('Nome de BA deve ter pelo menos 2 caracteres');
       }
       
       // 5. Verificar se matrícula está habilitada
@@ -320,14 +324,15 @@ class AuthCore {
       
       // 9. Atualizar profile com nome
       await updateProfile(user, {
-        displayName: nomeCompleto
+        displayName: nomeBA.trim()
       });
       
       // 10. Criar documento do usuário no Firestore
       await setDoc(doc(db, 'usuarios', user.uid), {
         matricula: matriculaUpper,
         email: email.toLowerCase().trim(),
-        displayName: nomeCompleto.trim(),
+        nomeCompleto: nomeCompleto.trim(),
+        displayName: nomeBA.trim(),
         role: matriculaCheck.role,
         ativo: true,
         cadastradoEm: serverTimestamp(),
@@ -355,12 +360,12 @@ class AuthCore {
       
       return { 
         success: true, 
-        message: `Bem-vindo(a), ${nomeCompleto}!`,
+        message: `Bem-vindo(a), ${nomeBA}!`,
         autoLogin: true,
         user: {
           uid: user.uid,
           matricula: matriculaUpper,
-          displayName: nomeCompleto
+          displayName: nomeBA.trim()
         }
       };
       
