@@ -193,7 +193,7 @@ class AuthGuard {
             <div class="auth-user-matricula" id="auth-user-matricula">--</div>
             <span class="auth-user-role user" id="auth-user-role">usuário</span>
           </div>
-          <a href="/admin/usuarios.html" class="auth-menu-item" id="auth-menu-admin" style="display: none;">
+          <a href="./admin/usuarios.html" class="auth-menu-item" id="auth-menu-admin" style="display: none;">
             <i data-lucide="shield" class="w-4 h-4"></i>
             <span>Painel Admin</span>
           </a>
