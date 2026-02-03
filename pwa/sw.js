@@ -1,11 +1,11 @@
 const CACHE_NAME = 'app-cache-v1';
 const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  './pwa/manifest.json',
-  '/pwa/app.js',
-  '/pwa/icons/icon-192.png',
-  '/pwa/icons/icon-256.png'
+  '/Central-SCI/',
+  '/Central-SCI/index.html',
+  '/Central-SCI/pwa/manifest.json',
+  '/Central-SCI/pwa/app.js',
+  '/Central-SCI/pwa/icons/icon-192.png',
+  '/Central-SCI/pwa/icons/icon-256.png'
   // adicione outras páginas/recursos necessários
 ];
 
