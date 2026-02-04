@@ -1,12 +1,12 @@
 const CACHE_NAME = 'app-cache-v1';
 const FILES_TO_CACHE = [
-  '../',
-  '../index.html',
-  './manifest.json',
-  './app.js',
-  './lucide.min.js',
-  './icons/icon-192.png',
-  './icons/icon-256.png'
+  './',
+  './index.html',
+  './pwa/manifest.json',
+  './pwa/app.js',
+  './pwa/lucide.min.js',
+  './pwa/icons/icon-192.png',
+  './pwa/icons/icon-256.png'
 ];
 
 self.addEventListener('install', event => {
