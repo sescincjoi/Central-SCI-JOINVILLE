@@ -189,7 +189,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* AUTH LOCK OVERLAY */
+        /* AUTH LOCK OVERLAY - Sistema Universal */
         .auth-locked {
             pointer-events: none;
             user-select: none;
@@ -219,8 +219,15 @@
             color: #d1d1d6;
         }
         
-        .auth-hidden {
-            display: none !important;
+        /* Para botões dentro de modais */
+        .tool-button[data-auth-required],
+        .submenu-button[data-auth-required] {
+            position: relative;
+        }
+        
+        .tool-button[data-auth-required].auth-locked,
+        .submenu-button[data-auth-required].auth-locked {
+            opacity: 0.6;
         }
         
         @keyframes axeChop {
