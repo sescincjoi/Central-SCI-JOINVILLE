@@ -893,10 +893,16 @@
         window.matriculaHandler = matriculaHandler;
         window.authLock = authLock;
         
-        // Inicializar sistema de bloqueio
-        authLock.init();
+        console.log('✅ Módulos de autenticação carregados');
         
-        console.log('✅ Sistema de autenticação carregado');
+        // Aguardar DOM carregar antes de inicializar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                authLock.init();
+            });
+        } else {
+            authLock.init();
+        }
     </script>
     <!-- PWA Service Worker -->
     <script src="pwa/app.js"></script>
