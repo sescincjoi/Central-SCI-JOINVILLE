@@ -410,6 +410,7 @@
         }
 
         .modal-body {
+            position: relative;
             padding: 20px 24px 40px;
         }
 
@@ -883,12 +884,17 @@
         import authUI from './js/auth/auth-ui.js';
         import authGuard from './js/auth/auth-guard.js';
         import matriculaHandler from './js/auth/matricula-handler.js';
+        import authLock from './js/auth/auth-lock.js';
         
         // Disponibilizar globalmente
         window.authCore = authCore;
         window.authUI = authUI;
         window.authGuard = authGuard;
         window.matriculaHandler = matriculaHandler;
+        window.authLock = authLock;
+        
+        // Inicializar sistema de bloqueio
+        authLock.init();
         
         console.log('✅ Sistema de autenticação carregado');
     </script>
@@ -1765,7 +1771,7 @@
             </button>
         </div>
         
-        <div class="modal-body">
+        <div class="modal-body" data-auth-required>
             <!-- Inspeção de Extintores -->
             <button class="tool-button" onclick="window.location.href='https://sescincjoi.github.io/Central-SCI-JOI/extintores'">
                 <div class="tool-icon" style="background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);">
