@@ -1,13 +1,12 @@
 const CACHE_NAME = 'app-cache-v1';
 const FILES_TO_CACHE = [
-  '/Central-SCI/',
-  '/Central-SCI/index.html',
-  './pwa/manifest.json',
-  '/Central-SCI/pwa/app.js',
-  './pwa/lucide.min.js',
-  '/Central-SCI/pwa/icons/icon-192.png',
-  '/Central-SCI/pwa/icons/icon-256.png'
-  // adicione outras páginas/recursos necessários
+  '../',
+  '../index.html',
+  './manifest.json',
+  './app.js',
+  './lucide.min.js',
+  './icons/icon-192.png',
+  './icons/icon-256.png'
 ];
 
 self.addEventListener('install', event => {
