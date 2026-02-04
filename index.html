@@ -190,33 +190,42 @@
         }
 
         /* AUTH LOCK OVERLAY - Sistema Universal */
-        .auth-locked {
-            pointer-events: none;
-            user-select: none;
-        }
-        
         .auth-lock-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
+            background: rgba(255, 255, 255, 0.4); /* Bem transparente */
+            backdrop-filter: blur(10px) saturate(150%); /* Blur + saturação */
+            -webkit-backdrop-filter: blur(10px) saturate(150%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10;
             border-radius: inherit;
+            transition: all 0.3s ease; /* Transição suave */
+        }
+        
+        .auth-locked {
+            pointer-events: none;
+            user-select: none;
+            filter: blur(2px); /* Blur leve no conteúdo também */
+            opacity: 0.8; /* Levemente opaco */
+            transition: all 0.3s ease; /* Transição suave */
         }
         
         .auth-lock-message {
             text-align: center;
-            color: #86868b;
+            color: #1d1d1f; /* Mais escuro para contraste */
+            background: rgba(255, 255, 255, 0.9); /* Fundo pro texto */
+            padding: 20px 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
         
         .auth-lock-message i {
-            color: #d1d1d6;
+            color: #007AFF; /* Azul ao invés de cinza */
         }
         
         /* Para botões dentro de modais */
