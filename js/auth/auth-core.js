@@ -36,6 +36,7 @@ import {
  */
 class AuthCore {
   constructor() {
+    this.initialized = false; // ← ADICIONADO
     this.currentUser = null;
     this.userRole = null;
     this.userMatricula = null;
@@ -60,8 +61,22 @@ class AuthCore {
         // Buscar dados completos do usuário
         await this.loadUserData(firebaseUser);
         
+        // Marcar como inicializado após primeiro carregamento
+        if (!this.initialized) {
+          this.initialized = true;
+          console.log('✅ AuthCore totalmente inicializado');
+          
+          // Disparar evento global de inicialização
+          window.dispatchEvent(new CustomEvent('auth-initialized'));
+        }
+        
         // Notificar listeners
         this.notifyListeners('login', this.currentUser);
+        
+        // Disparar evento global de mudança de estado
+        window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+          detail: { user: this.currentUser } 
+        }));
       } else {
         // Usuário deslogado
         console.log('🔓 Usuário desautenticado');
@@ -69,8 +84,22 @@ class AuthCore {
         this.userRole = null;
         this.userMatricula = null;
         
+        // Marcar como inicializado mesmo sem usuário
+        if (!this.initialized) {
+          this.initialized = true;
+          console.log('✅ AuthCore inicializado (sem usuário)');
+          
+          // Disparar evento global de inicialização
+          window.dispatchEvent(new CustomEvent('auth-initialized'));
+        }
+        
         // Notificar listeners
         this.notifyListeners('logout', null);
+        
+        // Disparar evento global de mudança de estado
+        window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+          detail: { user: null } 
+        }));
       }
     });
   }
@@ -355,6 +384,11 @@ class AuthCore {
       // Dispara manualmente agora que tudo está gravado
       this.notifyListeners('login', this.currentUser);
       
+      // Disparar evento global de mudança de estado
+      window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+        detail: { user: this.currentUser } 
+      }));
+      
       // NÃO precisa fazer login manual - Firebase já autenticou automaticamente!
       // O onAuthStateChanged vai detectar e carregar os dados
       
@@ -564,4 +598,4 @@ export default authCore;
 // Também exportar para uso global (se necessário)
 window.authCore = authCore;
 
-console.log('✅ AuthCore inicializado');
+console.log('✅ AuthCore carregado');
