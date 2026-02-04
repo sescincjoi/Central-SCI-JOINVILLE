@@ -4,6 +4,7 @@ const FILES_TO_CACHE = [
   '/Central-SCI/index.html',
   '/Central-SCI/pwa/manifest.json',
   '/Central-SCI/pwa/app.js',
+  '/Central-SCI-JOINVILLE/pwa/lucide.min.js',
   '/Central-SCI/pwa/icons/icon-192.png',
   '/Central-SCI/pwa/icons/icon-256.png'
   // adicione outras páginas/recursos necessários
