@@ -1,4 +1,4 @@
-const CACHE_NAME = 'central-sci-v2';
+const CACHE_NAME = 'central-sci-v4';
 const FILES_TO_CACHE = [
   './',
   './index.html',
