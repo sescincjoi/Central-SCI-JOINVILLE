@@ -1,20 +1,42 @@
 // Sistema de bloqueio para elementos não autenticados
 export default {
+    initialized: false,
+    
     // Inicializar sistema de locks
     init() {
-        console.log('🔒 Sistema de bloqueio inicializado');
-        this.checkAuthAndLock();
+        console.log('🔒 Aguardando sistema de autenticação...');
         
-        // Escutar mudanças de autenticação
-        window.addEventListener('auth-state-changed', () => {
-            this.checkAuthAndLock();
-        });
+        // Aguardar o authCore estar pronto
+        const waitForAuth = setInterval(() => {
+            if (window.authCore && window.authCore.initialized) {
+                clearInterval(waitForAuth);
+                this.initialized = true;
+                console.log('🔒 Sistema de bloqueio inicializado');
+                this.checkAuthAndLock();
+                
+                // Escutar mudanças de autenticação
+                window.addEventListener('auth-state-changed', () => {
+                    this.checkAuthAndLock();
+                });
+            }
+        }, 100);
+        
+        // Timeout de segurança (10 segundos)
+        setTimeout(() => {
+            if (!this.initialized) {
+                console.warn('⚠️ Sistema de autenticação não carregou, desbloqueando elementos');
+                this.unlockAll();
+            }
+        }, 10000);
     },
 
     // Verificar autenticação e aplicar locks
     checkAuthAndLock() {
         const isAuthenticated = window.authCore?.currentUser !== null;
         const elements = document.querySelectorAll('[data-auth-required]');
+        
+        console.log(`🔒 Verificando bloqueios: ${isAuthenticated ? 'LOGADO' : 'NÃO LOGADO'}`);
+        console.log(`🔒 Elementos protegidos: ${elements.length}`);
         
         elements.forEach(element => {
             if (isAuthenticated) {
@@ -23,6 +45,12 @@ export default {
                 this.lock(element);
             }
         });
+    },
+
+    // Desbloquear todos os elementos (fallback)
+    unlockAll() {
+        const elements = document.querySelectorAll('[data-auth-required]');
+        elements.forEach(element => this.unlock(element));
     },
 
     // Bloquear elemento
@@ -86,6 +114,8 @@ export default {
         // Mostrar notificação
         if (window.authUI && window.authUI.showNotification) {
             window.authUI.showNotification('Faça login para acessar esta funcionalidade', 'error');
+        } else {
+            alert('Faça login para acessar esta funcionalidade');
         }
         
         return false;
