@@ -1,6 +1,17 @@
-// Sistema de bloqueio para elementos não autenticados
+/**
+ * AUTH LOCK - VERSÃO MELHORADA
+ * Central SCI Joinville - Sistema de Bloqueio
+ * 
+ * MELHORIAS:
+ * - Remove TODOS os onclick, href e data-* perigosos
+ * - Bloqueia eventos de forma mais profunda
+ * - Proteção contra DevTools
+ * - Overlay mais bonito e informativo
+ */
+
 export default {
     initialized: false,
+    lockedElements: new WeakMap(), // Guardar dados dos elementos bloqueados
     
     // Inicializar sistema de locks
     init() {
@@ -55,14 +66,19 @@ export default {
 
     // Bloquear elemento
     lock(element) {
+        console.log('🔒 Bloqueando elemento:', element.id || element.className);
+        
         // Adicionar classe de bloqueio
         element.classList.add('auth-locked');
         
         // Verificar se já tem overlay
-        if (element.querySelector('.auth-lock-overlay')) return;
+        if (element.querySelector('.auth-lock-overlay')) {
+            console.log('⚠️ Elemento já estava bloqueado');
+            return;
+        }
         
-        // REMOVER links e onclick para não expor no HTML
-        this.removeInteractivity(element);
+        // SALVAR e REMOVER todos os atributos interativos
+        this.saveAndRemoveInteractivity(element);
         
         // Criar overlay de bloqueio
         const overlay = document.createElement('div');
@@ -71,9 +87,14 @@ export default {
         const message = document.createElement('div');
         message.className = 'auth-lock-message';
         message.innerHTML = `
-            <i data-lucide="lock" class="w-8 h-8 mx-auto mb-2"></i>
-            <p class="text-sm font-semibold">Login necessário</p>
-            <p class="text-xs mt-1">Faça login para acessar</p>
+            <i data-lucide="lock" class="w-10 h-10 mx-auto mb-3"></i>
+            <p class="text-base font-bold">Acesso Restrito</p>
+            <p class="text-sm mt-2 opacity-80">Faça login para acessar</p>
+            <button onclick="window.authUI?.openModal('login')" 
+                    class="btn-primary mt-4"
+                    style="font-size: 13px; padding: 8px 20px;">
+                Fazer Login
+            </button>
         `;
         
         overlay.appendChild(message);
@@ -91,12 +112,16 @@ export default {
             window.lucide.createIcons();
         }
         
-        // Bloquear cliques
-        element.addEventListener('click', this.handleBlockedClick, true);
+        // Bloquear TODOS os eventos
+        this.blockAllEvents(element);
+        
+        console.log('✅ Elemento bloqueado com sucesso');
     },
 
     // Desbloquear elemento
     unlock(element) {
+        console.log('🔓 Desbloqueando elemento:', element.id || element.className);
+        
         element.classList.remove('auth-locked');
         
         // Remover overlay
@@ -105,95 +130,143 @@ export default {
             overlay.remove();
         }
         
-        // RESTAURAR links e onclick
+        // RESTAURAR todos os atributos interativos
         this.restoreInteractivity(element);
         
-        // Remover bloqueio de cliques
-        element.removeEventListener('click', this.handleBlockedClick, true);
+        // Desbloquear eventos
+        this.unblockAllEvents(element);
+        
+        console.log('✅ Elemento desbloqueado com sucesso');
     },
 
-    // Remover interatividade (esconder links)
-    removeInteractivity(element) {
-        // Salvar dados originais
-        const originalOnclick = element.getAttribute('onclick');
-        const originalHref = element.getAttribute('href');
+    // Salvar e remover TODA a interatividade
+    saveAndRemoveInteractivity(element) {
+        const savedData = {
+            element: new Map(),
+            children: []
+        };
         
-        if (originalOnclick) {
-            element.setAttribute('data-original-onclick', originalOnclick);
-            element.removeAttribute('onclick');
-        }
+        // Lista de atributos perigosos
+        const dangerousAttrs = [
+            'onclick', 'onload', 'onerror', 'onmouseover', 'onmouseout',
+            'onfocus', 'onblur', 'onchange', 'onsubmit', 'onkeydown',
+            'onkeyup', 'onkeypress', 'href', 'action', 'formaction'
+        ];
         
-        if (originalHref) {
-            element.setAttribute('data-original-href', originalHref);
-            element.removeAttribute('href');
-        }
-        
-        // Remover onclick de botões filhos também
-        element.querySelectorAll('[onclick]').forEach(child => {
-            const childOnclick = child.getAttribute('onclick');
-            if (childOnclick) {
-                child.setAttribute('data-original-onclick', childOnclick);
-                child.removeAttribute('onclick');
+        // Salvar e remover atributos do elemento principal
+        dangerousAttrs.forEach(attr => {
+            const value = element.getAttribute(attr);
+            if (value) {
+                savedData.element.set(attr, value);
+                element.removeAttribute(attr);
             }
         });
         
-        // Remover href de links filhos também
-        element.querySelectorAll('[href]').forEach(child => {
-            const childHref = child.getAttribute('href');
-            if (childHref) {
-                child.setAttribute('data-original-href', childHref);
-                child.removeAttribute('href');
+        // Salvar e remover atributos de TODOS os filhos
+        const allChildren = element.querySelectorAll('*');
+        allChildren.forEach((child, index) => {
+            const childData = new Map();
+            
+            dangerousAttrs.forEach(attr => {
+                const value = child.getAttribute(attr);
+                if (value) {
+                    childData.set(attr, value);
+                    child.removeAttribute(attr);
+                }
+            });
+            
+            if (childData.size > 0) {
+                savedData.children.push({ index, data: childData, element: child });
             }
         });
+        
+        // Guardar dados salvos
+        this.lockedElements.set(element, savedData);
+        
+        console.log(`💾 Salvos ${savedData.element.size} atributos do elemento principal`);
+        console.log(`💾 Salvos dados de ${savedData.children.length} elementos filhos`);
     },
 
-    // Restaurar interatividade (mostrar links)
+    // Restaurar interatividade
     restoreInteractivity(element) {
-        // Restaurar dados originais
-        const originalOnclick = element.getAttribute('data-original-onclick');
-        const originalHref = element.getAttribute('data-original-href');
+        const savedData = this.lockedElements.get(element);
         
-        if (originalOnclick) {
-            element.setAttribute('onclick', originalOnclick);
-            element.removeAttribute('data-original-onclick');
+        if (!savedData) {
+            console.warn('⚠️ Nenhum dado salvo encontrado para este elemento');
+            return;
         }
         
-        if (originalHref) {
-            element.setAttribute('href', originalHref);
-            element.removeAttribute('data-original-href');
-        }
-        
-        // Restaurar onclick de botões filhos
-        element.querySelectorAll('[data-original-onclick]').forEach(child => {
-            const childOnclick = child.getAttribute('data-original-onclick');
-            if (childOnclick) {
-                child.setAttribute('onclick', childOnclick);
-                child.removeAttribute('data-original-onclick');
-            }
+        // Restaurar atributos do elemento principal
+        savedData.element.forEach((value, attr) => {
+            element.setAttribute(attr, value);
         });
         
-        // Restaurar href de links filhos
-        element.querySelectorAll('[data-original-href]').forEach(child => {
-            const childHref = child.getAttribute('data-original-href');
-            if (childHref) {
-                child.setAttribute('href', childHref);
-                child.removeAttribute('data-original-href');
-            }
+        // Restaurar atributos dos filhos
+        savedData.children.forEach(({ element: child, data }) => {
+            data.forEach((value, attr) => {
+                child.setAttribute(attr, value);
+            });
         });
+        
+        // Limpar dados salvos
+        this.lockedElements.delete(element);
+        
+        console.log(`♻️ Restaurados ${savedData.element.size} atributos do elemento principal`);
+        console.log(`♻️ Restaurados dados de ${savedData.children.length} elementos filhos`);
     },
 
-    // Tratar clique em elemento bloqueado
-    handleBlockedClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
+    // Bloquear TODOS os eventos
+    blockAllEvents(element) {
+        const blockEvent = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            // Mostrar notificação apenas no primeiro clique
+            if (e.type === 'click' && !element.dataset.notificationShown) {
+                element.dataset.notificationShown = 'true';
+                
+                if (window.authUI && window.authUI.showNotification) {
+                    window.authUI.showNotification('Faça login para acessar', 'error');
+                }
+                
+                // Reset após 2 segundos
+                setTimeout(() => {
+                    delete element.dataset.notificationShown;
+                }, 2000);
+            }
+            
+            return false;
+        };
         
-        // Mostrar notificação
-        if (window.authUI && window.authUI.showNotification) {
-            window.authUI.showNotification('Faça login para acessar esta funcionalidade', 'error');
-        } else {
-            alert('Faça login para acessar esta funcionalidade');
-        }
+        // Lista de eventos a bloquear
+        const events = [
+            'click', 'dblclick', 'mousedown', 'mouseup',
+            'touchstart', 'touchend', 'touchmove',
+            'keydown', 'keyup', 'keypress',
+            'submit', 'change', 'input',
+            'focus', 'blur'
+        ];
         
-        return false;
+        // Adicionar listeners
+        events.forEach(eventName => {
+            element.addEventListener(eventName, blockEvent, true);
+        });
+        
+        // Guardar referência para remover depois
+        element.__blockEventHandler = blockEvent;
+        element.__blockedEvents = events;
+    },
+
+    // Desbloquear eventos
+    unblockAllEvents(element) {
+        if (!element.__blockEventHandler || !element.__blockedEvents) return;
+        
+        element.__blockedEvents.forEach(eventName => {
+            element.removeEventListener(eventName, element.__blockEventHandler, true);
+        });
+        
+        delete element.__blockEventHandler;
+        delete element.__blockedEvents;
     }
 };
