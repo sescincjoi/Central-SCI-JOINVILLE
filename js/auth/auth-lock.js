@@ -61,6 +61,9 @@ export default {
         // Verificar se já tem overlay
         if (element.querySelector('.auth-lock-overlay')) return;
         
+        // REMOVER links e onclick para não expor no HTML
+        this.removeInteractivity(element);
+        
         // Criar overlay de bloqueio
         const overlay = document.createElement('div');
         overlay.className = 'auth-lock-overlay';
@@ -102,8 +105,81 @@ export default {
             overlay.remove();
         }
         
+        // RESTAURAR links e onclick
+        this.restoreInteractivity(element);
+        
         // Remover bloqueio de cliques
         element.removeEventListener('click', this.handleBlockedClick, true);
+    },
+
+    // Remover interatividade (esconder links)
+    removeInteractivity(element) {
+        // Salvar dados originais
+        const originalOnclick = element.getAttribute('onclick');
+        const originalHref = element.getAttribute('href');
+        
+        if (originalOnclick) {
+            element.setAttribute('data-original-onclick', originalOnclick);
+            element.removeAttribute('onclick');
+        }
+        
+        if (originalHref) {
+            element.setAttribute('data-original-href', originalHref);
+            element.removeAttribute('href');
+        }
+        
+        // Remover onclick de botões filhos também
+        element.querySelectorAll('[onclick]').forEach(child => {
+            const childOnclick = child.getAttribute('onclick');
+            if (childOnclick) {
+                child.setAttribute('data-original-onclick', childOnclick);
+                child.removeAttribute('onclick');
+            }
+        });
+        
+        // Remover href de links filhos também
+        element.querySelectorAll('[href]').forEach(child => {
+            const childHref = child.getAttribute('href');
+            if (childHref) {
+                child.setAttribute('data-original-href', childHref);
+                child.removeAttribute('href');
+            }
+        });
+    },
+
+    // Restaurar interatividade (mostrar links)
+    restoreInteractivity(element) {
+        // Restaurar dados originais
+        const originalOnclick = element.getAttribute('data-original-onclick');
+        const originalHref = element.getAttribute('data-original-href');
+        
+        if (originalOnclick) {
+            element.setAttribute('onclick', originalOnclick);
+            element.removeAttribute('data-original-onclick');
+        }
+        
+        if (originalHref) {
+            element.setAttribute('href', originalHref);
+            element.removeAttribute('data-original-href');
+        }
+        
+        // Restaurar onclick de botões filhos
+        element.querySelectorAll('[data-original-onclick]').forEach(child => {
+            const childOnclick = child.getAttribute('data-original-onclick');
+            if (childOnclick) {
+                child.setAttribute('onclick', childOnclick);
+                child.removeAttribute('data-original-onclick');
+            }
+        });
+        
+        // Restaurar href de links filhos
+        element.querySelectorAll('[data-original-href]').forEach(child => {
+            const childHref = child.getAttribute('data-original-href');
+            if (childHref) {
+                child.setAttribute('href', childHref);
+                child.removeAttribute('data-original-href');
+            }
+        });
     },
 
     // Tratar clique em elemento bloqueado
