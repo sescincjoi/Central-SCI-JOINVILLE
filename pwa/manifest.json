@@ -1,8 +1,8 @@
 {
   "name": "Seção Contra Incêndio - Aeroporto de Joinville/SC",
   "short_name": "Central SCI-JOI",
-  "start_url": "../index.html",
-  "scope": "../",
+  "start_url": "/Central-SCI/",
+  "scope": "/Central-SCI/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#fbfbfb",
