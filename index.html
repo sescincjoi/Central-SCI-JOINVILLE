@@ -196,15 +196,16 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
+            background: rgba(255, 255, 255, 0.95); /* Aumentado de 0.4 para 0.95 */
+            backdrop-filter: blur(20px) saturate(150%); /* Aumentado blur */
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10;
             border-radius: inherit;
             transition: all 0.3s ease;
+            cursor: not-allowed;
         }
         
         .auth-locked {
@@ -226,6 +227,23 @@
         
         .auth-lock-message i {
             color: #007AFF;
+        }
+
+        .auth-lock-message button {
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .auth-lock-message button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
         }
         
         /* Para botões dentro de modais */
@@ -1786,7 +1804,7 @@
             </button>
         </div>
         
-        <div class="modal-body" data-auth-required>
+        <div class="modal-body" data-auth-required data-hide-mode="locked">
             <!-- Inspeção de Extintores -->
             <button class="tool-button" onclick="window.location.href='https://sescincjoi.github.io/Central-SCI-JOI/extintores'">
                 <div class="tool-icon" style="background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);">
