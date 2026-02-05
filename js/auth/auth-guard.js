@@ -1,15 +1,15 @@
 /**
- * AUTH GUARD
+ * AUTH GUARD - VERSÃO MELHORADA
  * Central SCI Joinville - Proteção de Conteúdo
  * 
- * Gerencia a exibição de conteúdo baseado em autenticação:
- * - Esconde/mostra elementos [data-auth-required]
- * - Controla acesso por role (admin/user)
- * - Atualiza botão de login/logout
- * - Redireciona se necessário
+ * MELHORIAS:
+ * - Sempre usa modo "locked" (blur) ao invés de esconder
+ * - Remove onclick e href de elementos bloqueados
+ * - Maior segurança contra DevTools
  */
 
 import authCore from './auth-core.js';
+import authLock from './auth-lock.js';
 
 class AuthGuard {
   constructor() {
@@ -20,12 +20,10 @@ class AuthGuard {
       this.handleAuthChange(event, user);
     });
     
-    // Inicializar após carregamento da página
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.init());
-    } else {
+    // Aguardar auth-initialized
+    window.addEventListener('auth-initialized', () => {
       this.init();
-    }
+    });
   }
 
   /**
@@ -69,13 +67,15 @@ class AuthGuard {
     const isAuthenticated = authCore.isAuthenticated();
     const isAdmin = authCore.isAdmin();
     
+    console.log(`🛡️ Aplicando proteção: ${isAuthenticated ? 'LOGADO' : 'NÃO LOGADO'}`);
+    
     // Encontrar todos os elementos protegidos
     const protectedElements = document.querySelectorAll('[data-auth-required]');
     
+    console.log(`🛡️ Elementos protegidos encontrados: ${protectedElements.length}`);
+    
     protectedElements.forEach(element => {
       const requiredRole = element.getAttribute('data-role');
-      const hideMode = element.getAttribute('data-hide-mode') || 'auto';
-      
       let hasAccess = false;
       
       // Verificar acesso
@@ -89,63 +89,21 @@ class AuthGuard {
         hasAccess = true; // Qualquer usuário logado
       }
       
-      // Aplicar proteção
+      // Aplicar proteção usando authLock
       if (hasAccess) {
-        // Tem acesso - mostrar
+        // Tem acesso - desbloquear
         element.style.display = '';
-        element.classList.remove('auth-locked', 'auth-hidden');
+        element.classList.remove('auth-locked');
+        authLock.unlock(element);
+        console.log('✅ Desbloqueado:', element.id || element.className);
       } else {
-        // Não tem acesso - esconder ou bloquear
-        if (hideMode === 'hidden' || !isAuthenticated) {
-          // Esconder completamente
-          element.style.display = 'none';
-          element.classList.add('auth-hidden');
-          element.classList.remove('auth-locked');
-        } else if (hideMode === 'locked') {
-          // Mostrar mas bloqueado
-          element.style.display = '';
-          element.classList.add('auth-locked');
-          element.classList.remove('auth-hidden');
-          this.applyLockedStyle(element);
-        } else {
-          // Auto: esconde se não logado, bloqueia se sem permissão
-          if (!isAuthenticated) {
-            element.style.display = 'none';
-            element.classList.add('auth-hidden');
-          } else {
-            element.style.display = '';
-            element.classList.add('auth-locked');
-            this.applyLockedStyle(element);
-          }
-        }
+        // Não tem acesso - SEMPRE usar modo locked (blur)
+        element.style.display = '';
+        element.classList.add('auth-locked');
+        authLock.lock(element);
+        console.log('🔒 Bloqueado:', element.id || element.className);
       }
     });
-  }
-
-  /**
-   * APLICAR ESTILO DE BLOQUEADO
-   */
-  applyLockedStyle(element) {
-    // Adicionar overlay se ainda não existe
-    if (!element.querySelector('.auth-lock-overlay')) {
-      const overlay = document.createElement('div');
-      overlay.className = 'auth-lock-overlay';
-      overlay.innerHTML = `
-        <div class="auth-lock-message">
-          <i data-lucide="lock" class="w-6 h-6 mb-2"></i>
-          <p class="text-sm font-semibold">Acesso Restrito</p>
-          <p class="text-xs text-gray-500 mt-1">Apenas administradores</p>
-        </div>
-      `;
-      
-      element.style.position = 'relative';
-      element.appendChild(overlay);
-      
-      // Recriar ícones Lucide
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
   }
 
   /**
@@ -162,8 +120,15 @@ class AuthGuard {
           e.preventDefault();
           e.stopPropagation();
           
-          // Mostrar modal de login
-          window.authUI.openModal('login');
+          // Mostrar notificação
+          if (window.authUI && window.authUI.showNotification) {
+            window.authUI.showNotification('Faça login para acessar esta funcionalidade', 'error');
+          }
+          
+          // Abrir modal de login após 500ms
+          setTimeout(() => {
+            window.authUI.openModal('login');
+          }, 500);
         }
       }
     }, true); // Use capture para pegar antes de outros handlers
@@ -193,7 +158,7 @@ class AuthGuard {
             <div class="auth-user-matricula" id="auth-user-matricula">--</div>
             <span class="auth-user-role user" id="auth-user-role">usuário</span>
           </div>
-          <a href="../admin/usuarios.html" class="auth-menu-item" id="auth-menu-admin" style="display: none;">
+          <a href="admin/usuarios.html" class="auth-menu-item" id="auth-menu-admin" style="display: none;">
             <i data-lucide="shield" class="w-4 h-4"></i>
             <span>Painel Admin</span>
           </a>
@@ -289,35 +254,6 @@ class AuthGuard {
       lucide.createIcons();
     }
   }
-
-  /**
-   * VERIFICAR SE PÁGINA REQUER AUTH
-   */
-  checkPageAccess() {
-    const body = document.body;
-    const requiresAuth = body.hasAttribute('data-auth-required');
-    const requiredRole = body.getAttribute('data-role');
-    
-    if (!requiresAuth) return true;
-    
-    if (!authCore.isAuthenticated()) {
-      // Salvar URL para redirecionar depois
-      sessionStorage.setItem('auth_redirect', window.location.pathname);
-      
-      // Mostrar modal
-      window.authUI.openModal('login');
-      
-      return false;
-    }
-    
-    if (requiredRole === 'admin' && !authCore.isAdmin()) {
-      alert('Acesso negado. Apenas administradores.');
-      window.location.href = '/';
-      return false;
-    }
-    
-    return true;
-  }
 }
 
 // Criar instância global
@@ -329,4 +265,4 @@ export default authGuard;
 // Disponibilizar globalmente
 window.authGuard = authGuard;
 
-console.log('✅ AuthGuard carregado');
+console.log('✅ AuthGuard melhorado carregado');
