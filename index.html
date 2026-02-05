@@ -189,16 +189,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* AUTH LOCK OVERLAY - Sistema Universal */
+        /* ========================================
+           AUTH LOCK OVERLAY - ESTILO CORRIGIDO
+           ======================================== */
+        
+        /* Overlay principal - SEM blur no próprio overlay */
         .auth-lock-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.95); /* Aumentado de 0.4 para 0.95 */
-            backdrop-filter: blur(20px) saturate(150%); /* Aumentado blur */
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            /* Fundo com transparência mas SEM afetar o conteúdo interno */
+            background: rgba(255, 255, 255, 0.98);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -206,55 +209,125 @@
             border-radius: inherit;
             transition: all 0.3s ease;
             cursor: not-allowed;
+            padding: 20px; /* Espaçamento interno */
         }
         
-        .auth-locked {
-            pointer-events: none;
-            user-select: none;
-            filter: blur(2px);
-            opacity: 0.8;
-            transition: all 0.3s ease;
-        }
-        
+        /* Mensagem dentro do overlay - CLARA e LEGÍVEL */
         .auth-lock-message {
             text-align: center;
             color: #1d1d1f;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px 24px;
-            border-radius: 16px;
+            background: #ffffff;
+            padding: 32px 28px;
+            border-radius: 18px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            max-width: 320px;
+            width: 100%;
+            /* Garantir que NÃO herda blur */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
         
+        /* Ícone do cadeado */
         .auth-lock-message i {
             color: #007AFF;
+            display: block;
+            margin: 0 auto 16px;
         }
-
+        
+        /* Título "Acesso Restrito" */
+        .auth-lock-message p:first-of-type {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin: 0 0 8px 0;
+        }
+        
+        /* Subtítulo "Faça login para acessar" */
+        .auth-lock-message p:last-of-type {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+        
+        /* Botão de login */
         .auth-lock-message button {
-            margin-top: 16px;
-            padding: 10px 24px;
+            width: 100%;
+            padding: 12px 24px;
             background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
             color: white;
             border: none;
             border-radius: 12px;
             font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
         .auth-lock-message button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
         }
         
-        /* Para botões dentro de modais */
-        .tool-button[data-auth-required],
-        .submenu-button[data-auth-required] {
+        .auth-lock-message button:active {
+            transform: translateY(0);
+        }
+        
+        /* BLUR aplicado APENAS no elemento protegido (não no overlay) */
+        .auth-locked {
+            pointer-events: none;
+            user-select: none;
             position: relative;
         }
         
-        .tool-button[data-auth-required].auth-locked,
-        .submenu-button[data-auth-required].auth-locked {
+        /* Blur no conteúdo protegido (filhos diretos, exceto overlay) */
+        .auth-locked > *:not(.auth-lock-overlay) {
+            filter: blur(4px) brightness(0.95);
             opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        /* Responsivo para mobile */
+        @media (max-width: 640px) {
+            .auth-lock-overlay {
+                padding: 16px;
+            }
+            
+            .auth-lock-message {
+                padding: 24px 20px;
+                max-width: 100%;
+            }
+            
+            .auth-lock-message p:first-of-type {
+                font-size: 16px;
+            }
+            
+            .auth-lock-message p:last-of-type {
+                font-size: 13px;
+            }
+            
+            .auth-lock-message button {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+        
+        /* Para elementos que são botões ou cards */
+        .tool-button.auth-locked,
+        .submenu-button.auth-locked,
+        .card.auth-locked {
+            position: relative;
+        }
+        
+        /* Garantir que o overlay cobre toda a área */
+        .tool-button.auth-locked .auth-lock-overlay,
+        .submenu-button.auth-locked .auth-lock-overlay {
+            border-radius: 14px; /* Mesmo raio dos botões */
+        }
+        
+        .card.auth-locked .auth-lock-overlay {
+            border-radius: 18px; /* Mesmo raio dos cards */
         }
         
         @keyframes axeChop {
