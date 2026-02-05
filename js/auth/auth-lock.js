@@ -1,23 +1,21 @@
 /**
- * AUTH LOCK - VERSÃO MELHORADA
+ * AUTH LOCK - VERSÃO FINAL CORRIGIDA
  * Central SCI Joinville - Sistema de Bloqueio
  * 
- * MELHORIAS:
- * - Remove TODOS os onclick, href e data-* perigosos
- * - Bloqueia eventos de forma mais profunda
- * - Proteção contra DevTools
- * - Overlay mais bonito e informativo
+ * CORREÇÕES:
+ * - Overlay legível e bem posicionado
+ * - Blur apenas no conteúdo protegido
+ * - Botão de login funcional
+ * - Responsivo
  */
 
 export default {
     initialized: false,
-    lockedElements: new WeakMap(), // Guardar dados dos elementos bloqueados
+    lockedElements: new WeakMap(),
     
-    // Inicializar sistema de locks
     init() {
         console.log('🔒 Aguardando sistema de autenticação...');
         
-        // Aguardar o authCore estar pronto
         const waitForAuth = setInterval(() => {
             if (window.authCore && window.authCore.initialized) {
                 clearInterval(waitForAuth);
@@ -25,14 +23,12 @@ export default {
                 console.log('🔒 Sistema de bloqueio inicializado');
                 this.checkAuthAndLock();
                 
-                // Escutar mudanças de autenticação
                 window.addEventListener('auth-state-changed', () => {
                     this.checkAuthAndLock();
                 });
             }
         }, 100);
         
-        // Timeout de segurança (10 segundos)
         setTimeout(() => {
             if (!this.initialized) {
                 console.warn('⚠️ Sistema de autenticação não carregou, desbloqueando elementos');
@@ -41,7 +37,6 @@ export default {
         }, 10000);
     },
 
-    // Verificar autenticação e aplicar locks
     checkAuthAndLock() {
         const isAuthenticated = window.authCore?.currentUser !== null;
         const elements = document.querySelectorAll('[data-auth-required]');
@@ -58,48 +53,65 @@ export default {
         });
     },
 
-    // Desbloquear todos os elementos (fallback)
     unlockAll() {
         const elements = document.querySelectorAll('[data-auth-required]');
         elements.forEach(element => this.unlock(element));
     },
 
-    // Bloquear elemento
     lock(element) {
         console.log('🔒 Bloqueando elemento:', element.id || element.className);
         
-        // Adicionar classe de bloqueio
         element.classList.add('auth-locked');
         
-        // Verificar se já tem overlay
         if (element.querySelector('.auth-lock-overlay')) {
             console.log('⚠️ Elemento já estava bloqueado');
             return;
         }
         
-        // SALVAR e REMOVER todos os atributos interativos
         this.saveAndRemoveInteractivity(element);
         
-        // Criar overlay de bloqueio
+        // HTML CORRIGIDO DO OVERLAY
         const overlay = document.createElement('div');
         overlay.className = 'auth-lock-overlay';
         
         const message = document.createElement('div');
         message.className = 'auth-lock-message';
+        
+        // Estrutura HTML clara e legível
         message.innerHTML = `
-            <i data-lucide="lock" class="w-10 h-10 mx-auto mb-3"></i>
-            <p class="text-base font-bold">Acesso Restrito</p>
-            <p class="text-sm mt-2 opacity-80">Faça login para acessar</p>
-            <button onclick="window.authUI?.openModal('login')" 
-                    class="btn-primary mt-4"
-                    style="font-size: 13px; padding: 8px 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 16px; display: block;">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <p style="font-size: 18px; font-weight: 700; color: #1d1d1f; margin: 0 0 8px 0;">
+                Acesso Restrito
+            </p>
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 20px 0; line-height: 1.5;">
+                Faça login para acessar esta funcionalidade
+            </p>
+            <button 
+                type="button"
+                onclick="event.stopPropagation(); window.authUI?.openModal('login');" 
+                style="
+                    width: 100%;
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 15px;
+                    cursor: pointer;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    transition: all 0.2s ease;
+                ">
                 Fazer Login
             </button>
         `;
         
         overlay.appendChild(message);
         
-        // Posicionar elemento como relative se necessário
+        // Garantir posicionamento relativo
         const position = window.getComputedStyle(element).position;
         if (position === 'static') {
             element.style.position = 'relative';
@@ -107,53 +119,56 @@ export default {
         
         element.appendChild(overlay);
         
-        // Atualizar ícones Lucide
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
+        // Hover no botão (usando JavaScript pois inline style não suporta hover)
+        const button = message.querySelector('button');
+        button.addEventListener('mouseenter', () => {
+            button.style.transform = 'translateY(-2px)';
+            button.style.boxShadow = '0 8px 20px rgba(0, 122, 255, 0.4)';
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'translateY(0)';
+            button.style.boxShadow = 'none';
+        });
+        button.addEventListener('mousedown', () => {
+            button.style.transform = 'scale(0.98)';
+        });
+        button.addEventListener('mouseup', () => {
+            button.style.transform = 'translateY(-2px)';
+        });
         
-        // Bloquear TODOS os eventos
         this.blockAllEvents(element);
         
         console.log('✅ Elemento bloqueado com sucesso');
     },
 
-    // Desbloquear elemento
     unlock(element) {
         console.log('🔓 Desbloqueando elemento:', element.id || element.className);
         
         element.classList.remove('auth-locked');
         
-        // Remover overlay
         const overlay = element.querySelector('.auth-lock-overlay');
         if (overlay) {
             overlay.remove();
         }
         
-        // RESTAURAR todos os atributos interativos
         this.restoreInteractivity(element);
-        
-        // Desbloquear eventos
         this.unblockAllEvents(element);
         
         console.log('✅ Elemento desbloqueado com sucesso');
     },
 
-    // Salvar e remover TODA a interatividade
     saveAndRemoveInteractivity(element) {
         const savedData = {
             element: new Map(),
             children: []
         };
         
-        // Lista de atributos perigosos
         const dangerousAttrs = [
             'onclick', 'onload', 'onerror', 'onmouseover', 'onmouseout',
             'onfocus', 'onblur', 'onchange', 'onsubmit', 'onkeydown',
             'onkeyup', 'onkeypress', 'href', 'action', 'formaction'
         ];
         
-        // Salvar e remover atributos do elemento principal
         dangerousAttrs.forEach(attr => {
             const value = element.getAttribute(attr);
             if (value) {
@@ -162,7 +177,6 @@ export default {
             }
         });
         
-        // Salvar e remover atributos de TODOS os filhos
         const allChildren = element.querySelectorAll('*');
         allChildren.forEach((child, index) => {
             const childData = new Map();
@@ -180,14 +194,12 @@ export default {
             }
         });
         
-        // Guardar dados salvos
         this.lockedElements.set(element, savedData);
         
         console.log(`💾 Salvos ${savedData.element.size} atributos do elemento principal`);
         console.log(`💾 Salvos dados de ${savedData.children.length} elementos filhos`);
     },
 
-    // Restaurar interatividade
     restoreInteractivity(element) {
         const savedData = this.lockedElements.get(element);
         
@@ -196,33 +208,33 @@ export default {
             return;
         }
         
-        // Restaurar atributos do elemento principal
         savedData.element.forEach((value, attr) => {
             element.setAttribute(attr, value);
         });
         
-        // Restaurar atributos dos filhos
         savedData.children.forEach(({ element: child, data }) => {
             data.forEach((value, attr) => {
                 child.setAttribute(attr, value);
             });
         });
         
-        // Limpar dados salvos
         this.lockedElements.delete(element);
         
         console.log(`♻️ Restaurados ${savedData.element.size} atributos do elemento principal`);
         console.log(`♻️ Restaurados dados de ${savedData.children.length} elementos filhos`);
     },
 
-    // Bloquear TODOS os eventos
     blockAllEvents(element) {
         const blockEvent = (e) => {
+            // Não bloquear cliques no botão de login
+            if (e.target.closest('.auth-lock-message button')) {
+                return; // Deixa o evento passar
+            }
+            
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             
-            // Mostrar notificação apenas no primeiro clique
             if (e.type === 'click' && !element.dataset.notificationShown) {
                 element.dataset.notificationShown = 'true';
                 
@@ -230,7 +242,6 @@ export default {
                     window.authUI.showNotification('Faça login para acessar', 'error');
                 }
                 
-                // Reset após 2 segundos
                 setTimeout(() => {
                     delete element.dataset.notificationShown;
                 }, 2000);
@@ -239,7 +250,6 @@ export default {
             return false;
         };
         
-        // Lista de eventos a bloquear
         const events = [
             'click', 'dblclick', 'mousedown', 'mouseup',
             'touchstart', 'touchend', 'touchmove',
@@ -248,17 +258,14 @@ export default {
             'focus', 'blur'
         ];
         
-        // Adicionar listeners
         events.forEach(eventName => {
             element.addEventListener(eventName, blockEvent, true);
         });
         
-        // Guardar referência para remover depois
         element.__blockEventHandler = blockEvent;
         element.__blockedEvents = events;
     },
 
-    // Desbloquear eventos
     unblockAllEvents(element) {
         if (!element.__blockEventHandler || !element.__blockedEvents) return;
         
