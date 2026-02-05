@@ -1,4 +1,4 @@
-const CACHE_NAME = 'central-sci-v4';
+const CACHE_NAME = 'central-sci-v5';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +17,18 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('🗑️ Removendo cache antigo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
