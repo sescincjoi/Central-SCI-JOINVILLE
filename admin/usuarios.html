@@ -561,6 +561,157 @@
               }
             }
 
+        /* ========================================
+           AUTH LOCK OVERLAY - ESTILO CORRIGIDO
+           ======================================== */
+        
+        /* Overlay principal - SEM blur no próprio overlay */
+        .auth-lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 80%);
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+            border-radius: inherit;
+            transition: all 0.3s ease;
+            cursor: not-allowed;
+            padding: 13px 20px;
+            align-items: center;
+        }
+        
+        /* Mensagem dentro do overlay - CLARA e LEGÍVEL */
+        .auth-lock-message {
+            display: flex;
+            text-align: center;
+            color: #1d1d1f;
+            background: #ffffff;
+            padding: 20px 36px;
+            gap: 6px 16px;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            max-width: 80%;
+            width: -webkit-fill-available;
+            max-height: 100%;
+            height: fit-content;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+        }
+        
+        /* Ícone do cadeado */
+        .auth-lock-message > svg {
+            width: 22px;
+            height: 22px;
+            margin: 0 !important;
+            padding: 0;
+        }
+        
+        /* Título "Acesso Restrito" */
+        .auth-lock-message > p {
+            margin: 0 !important;
+        }
+        .auth-lock-message p:first-of-type {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1d1d1f;
+            margin: 0 0 8px 0;
+        }
+        
+        /* Subtítulo "Faça login para acessar" */
+        .auth-lock-message p:last-of-type {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+        
+        /* Botão de login */
+        .auth-lock-message button {
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .auth-lock-message button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+        }
+        
+        .auth-lock-message button:active {
+            transform: translateY(0);
+        }
+        
+        /* BLUR aplicado APENAS no elemento protegido (não no overlay) */
+        .auth-locked {
+            pointer-events: none;
+            user-select: none;
+            position: relative;
+        }
+        
+        /* Blur no conteúdo protegido (filhos diretos, exceto overlay) */
+        .auth-locked > *:not(.auth-lock-overlay) {
+            filter: blur(4px) brightness(98%);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        /* Responsivo para mobile */
+        @media (max-width: 640px) {
+            .auth-lock-overlay {
+                padding: 16px;
+            }
+            
+            .auth-lock-message {
+                padding: 24px 20px;
+                max-width: 100%;
+            }
+            
+            .auth-lock-message p:first-of-type {
+                font-size: 16px;
+            }
+            
+            .auth-lock-message p:last-of-type {
+                font-size: 13px;
+            }
+            
+            .auth-lock-message button {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+        
+        /* Para elementos que são botões ou cards */
+        .tool-button.auth-locked,
+        .submenu-button.auth-locked,
+        .card.auth-locked {
+            position: relative;
+        }
+        
+        /* Garantir que o overlay cobre toda a área */
+        .tool-button.auth-locked .auth-lock-overlay,
+        .submenu-button.auth-locked .auth-lock-overlay {
+            border-radius: 14px; /* Mesmo raio dos botões */
+        }
+        
+        .card.auth-locked .auth-lock-overlay {
+            border-radius: 18px; /* Mesmo raio dos cards */
+        }
+
     </style>
     
     <!-- Firebase Auth - Módulos ES6 -->
