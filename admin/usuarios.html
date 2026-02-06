@@ -712,6 +712,20 @@
             border-radius: 18px; /* Mesmo raio dos cards */
         }
 
+        #content-usuarios div {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        .search-box svg {
+            position: absolute;
+            margin-left: 11px;
+            padding-right: 8px;
+            border-right: 1px solid rgb(0 0 0 / 15%);
+            height: 70%;
+            width: 28px;
+        }
+
     </style>
     
     <!-- Firebase Auth - Módulos ES6 -->
@@ -799,7 +813,7 @@
                         <input 
                             type="text" 
                             class="form-input" 
-                            placeholder="Buscar por nome ou matrícula..."
+                            placeholder="Nome ou Matrícula..."
                             id="searchUsuarios"
                             oninput="filtrarUsuarios()"
                         />
