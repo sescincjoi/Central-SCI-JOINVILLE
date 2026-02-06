@@ -2155,6 +2155,44 @@
         margin: 0 auto 16px;
         color: #d1d1d6;
     }
+    /* Texto para usuários não logados */
+    .aviso-login-prompt {
+        text-align: center;
+        padding: 16px;
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 500;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-top: 12px;
+    }
+    
+    .aviso-login-prompt a {
+        color: #007AFF;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .aviso-login-prompt a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Info do emissor no card de aviso */
+    .aviso-emissor {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #f3f4f6;
+    }
+    
+    .aviso-emissor i {
+        width: 14px;
+        height: 14px;
+    }
     
     /* Modal Criar Aviso */
     .modal-criar-overlay {
@@ -2302,10 +2340,10 @@
                 </button>
             </div>
             <div class="modal-avisos-body">
-                <button class="btn-novo-aviso" onclick="openCriarAviso()">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    Criar Novo Aviso
-                </button>
+                <!-- Botão Criar Aviso - PROTEGIDO -->
+                <div id="criar-aviso-container">
+                    <!-- Este conteúdo será preenchido dinamicamente pelo JavaScript -->
+                </div>
                 <div id="avisosLista" style="margin-top: 20px;">
                     <div class="empty-avisos">
                         <i data-lucide="bell-off" class="w-16 h-16"></i>
@@ -2364,7 +2402,7 @@
     </div>
     
     <script>
-    const AVISOS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzMqAjJn-Y8VRcGKRtZWuvTCFXa3ASGlWfktIhclRR-qLAPNVLP-bARkHCp6g5_G4HdHg/exec';
+    const AVISOS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwf7qewam6spvzEV80eVSR-yXGN9QwnuI2qDOczefVWBRlVYh77t1Rk4meq8P9_KYTyIQ/exec';
     
     let avisosAtivos = [];
     
@@ -2415,6 +2453,44 @@
             console.error('Erro ao carregar avisos:', error);
         }
     }
+
+    // Renderizar botão de criar aviso baseado em autenticação
+    function renderizarBotaoCriarAviso() {
+        const container = document.getElementById('criar-aviso-container');
+        
+        if (!container) {
+            console.warn('Container criar-aviso-container não encontrado');
+            return;
+        }
+        
+        const isAuthenticated = window.authCore && window.authCore.isAuthenticated 
+            ? window.authCore.isAuthenticated() 
+            : false;
+        
+        if (isAuthenticated) {
+            // Usuário logado - mostrar botão
+            container.innerHTML = `
+                <button class="btn-criar-aviso" onclick="openCriarAviso()">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Criar Novo Aviso</span>
+                </button>
+            `;
+        } else {
+            // Usuário NÃO logado - mostrar texto
+            container.innerHTML = `
+                <div class="aviso-login-prompt">
+                    <a href="#" onclick="event.preventDefault(); window.authUI && window.authUI.openModal('login');">
+                        Faça login para emitir avisos
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Recriar ícones
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
     
     // Renderizar Avisos
     function renderizarAvisos() {
@@ -2425,7 +2501,7 @@
                 <div class="empty-avisos">
                     <i data-lucide="bell-off" class="w-16 h-16"></i>
                     <p style="font-weight: 600; margin-bottom: 4px;">Nenhum aviso ativo</p>
-                    <p style="font-size: 13px;">Crie um novo aviso acima</p>
+                    <p style="font-size: 13px;">Avisos publicados aparecerão aqui</p>
                 </div>
             `;
             lucide.createIcons();
@@ -2434,31 +2510,34 @@
         
         container.innerHTML = avisosAtivos.map(aviso => {
             const dataRegistro = new Date(aviso['DATA/HORA']);
-            const tempoAtivo = parseInt(aviso.TEMPO_ATIVO) || 24;
-            const dataExpiracao = new Date(dataRegistro.getTime() + (tempoAtivo * 60 * 60 * 1000));
-            const tempoRestante = Math.max(0, dataExpiracao - new Date());
-            const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
-            const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+            const emissor = aviso.EMISSOR || 'Anônimo';
             
-            let tempoTexto = '';
-            if (horasRestantes > 0) {
-                tempoTexto = `Expira em ${horasRestantes}h ${minutosRestantes}min`;
-            } else if (minutosRestantes > 0) {
-                tempoTexto = `Expira em ${minutosRestantes} minutos`;
-            } else {
-                tempoTexto = 'Expirando...';
-            }
+            // Formatar data/hora de emissão
+            const dataFormatada = dataRegistro.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
             return `
                 <div class="aviso-card">
                     <div class="aviso-card-header">
                         <span class="aviso-assunto">${aviso.ASSUNTO}</span>
-                        <span class="aviso-tempo">${tempoTexto}</span>
+                        <span class="aviso-tempo">${dataFormatada}</span>
                     </div>
                     <p class="aviso-texto">${aviso.TEXTO}</p>
+                    <div class="aviso-emissor">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        <span>${emissor}</span>
+                    </div>
                 </div>
             `;
         }).join('');
+        
+        // Recriar ícones Lucide
+        lucide.createIcons();
     }
     
     // Atualizar Badge
@@ -2490,12 +2569,18 @@
         const texto = document.getElementById('inputTexto').value;
         const tempoAtivo = document.getElementById('inputTempo').value;
         
+        // Obter nome do usuário logado
+        const emissor = window.authCore && window.authCore.currentUser 
+            ? window.authCore.currentUser.displayName 
+            : 'Anônimo';
+        
         try {
             // Criar FormData
             const formData = new FormData();
             formData.append('assunto', assunto);
             formData.append('texto', texto);
             formData.append('tempoAtivo', tempoAtivo);
+            formData.append('emissor', emissor); // NOVO
             
             // Enviar com fetch
             const response = await fetch(AVISOS_WEB_APP_URL, {
@@ -2540,7 +2625,17 @@
     // Carregar avisos ao iniciar e atualizar a cada 2 minutos
     document.addEventListener('DOMContentLoaded', function() {
         carregarAvisos();
+        renderizarBotaoCriarAviso(); // NOVO
         setInterval(carregarAvisos, 2 * 60 * 1000);
+    });
+    
+    // Atualizar botão quando autenticação mudar
+    window.addEventListener('auth-state-changed', function() {
+        renderizarBotaoCriarAviso(); // NOVO
+    });
+    
+    window.addEventListener('auth-initialized', function() {
+        renderizarBotaoCriarAviso(); // NOVO
     });
     </script>
     <!-- FIM SISTEMA DE AVISOS -->
