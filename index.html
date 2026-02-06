@@ -1010,14 +1010,25 @@
         
         console.log('✅ Módulos de autenticação carregados');
         
-        // Aguardar DOM carregar antes de inicializar
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
+        // ✅ ESPERAR authUI estar TOTALMENTE pronto antes de inicializar authLock
+        function initAuthSystem() {
+            // Verificar se authUI está realmente disponível
+            if (window.authUI && window.authUI.openModal) {
+                console.log('✅ authUI pronto, inicializando authLock...');
                 authLock.init();
-            });
-        } else {
-            authLock.init();
+            } else {
+                console.log('⏳ Aguardando authUI...');
+                setTimeout(initAuthSystem, 50); // Tentar novamente em 50ms
+            }
         }
+        
+        // Aguardar DOM carregar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAuthSystem);
+        } else {
+            initAuthSystem();
+        }
+        
     </script>
     <!-- PWA Service Worker -->
     <script src="/Central-SCI/pwa/app.js"></script>
