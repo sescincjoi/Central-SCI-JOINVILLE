@@ -247,11 +247,16 @@ export default {
 
     blockAllEvents(element) {
         const blockEvent = (e) => {
-            // Não bloquear cliques no card (para abrir modal)
-            if (e.target.closest('.auth-lock-message')) {
-                return; // Deixa o evento passar
+            // ✅ CORREÇÃO: Verificar se o clique é NO card ou DENTRO do card
+            const clickedOnCard = e.target.classList.contains('auth-lock-message') || 
+                                 e.target.closest('.auth-lock-message');
+            
+            if (clickedOnCard) {
+                // Deixa o evento passar para o card processar
+                return true;
             }
             
+            // Bloqueia todos os outros eventos
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
